@@ -1,0 +1,54 @@
+version: '3.3'
+
+services:
+  keycloak:
+    image: quay.io/keycloak/keycloak:16.1.1
+    environment:
+#      - KEYCLOAK_ADMIN=admin
+#      - KEYCLOAK_ADMIN_PASSWORD=admin
+      - KEYCLOAK_USER=admin
+      - KEYCLOAK_PASSWORD=admin
+#      - "JAVA_OPTS_APPEND= -Dkeycloak.migration.action=import -Dkeycloak.migration.provider=singleFile -Dkeycloak.migration.dir=/tmp/fiware-realm.json -Dkeycloak.migration.strategy=OVERWRITE_EXISTING"
+      - "JAVA_OPTS_APPEND=-Dkeycloak.profile.feature.upload_scripts=enabled -Dkeycloak.profile.feature.scripts=enabled -Dkeycloak.migration.action=import -Dkeycloak.migration.provider=singleFile -Dkeycloak.migration.file=/opt/jboss/realm-export.json -Dkeycloak.migration.strategy=OVERWRITE_EXISTING"
+    ports:
+      - "8180:8080"
+    configs:
+      - source: keycloak-realm
+        target: /opt/jboss/realm-export.json
+
+#    configs:
+#      - source: keycloak-realm
+#        target: /opt/keycloak/data/import/fiware-realm.json
+#    command: start-dev --import-realm
+    networks:
+      - keycloak-network
+
+  echo:
+    image: ealen/echo-server
+    ports:
+      - "3000:80"
+    networks:
+      - keycloak-network
+
+  pep:
+    image: keycloak-rest-pep:dev
+    environment:
+      - SPRING_CONFIG_NAME=application
+      - SPRING_CONFIG_LOCATION=/opt/
+    ports:
+      - "8080:8080"
+    configs:
+      - source: pep-conf
+        target: /deployments/application.properties
+    networks:
+      - keycloak-network
+
+configs:
+#  pep-conf:
+#    file: ./application.properties
+
+  keycloak-realm:
+    file: ./fiware-realm.json
+
+networks:
+  keycloak-network:
