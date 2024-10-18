@@ -1,0 +1,28 @@
+{
+  "realm": "fiware-server",
+  "auth-server-url": "http://192.168.135.46:8080/auth",
+  "resource": "orion-pep",
+  "lazy-load-paths": false,
+  "credentials": {
+    "secret": "changeme"
+  },
+  "path-cache": {
+    "lifespan": 300000,
+    "max-entries": 10000
+  },
+  "paths": [
+    {
+      "name": "protected",
+      "path": "/*",
+      "enforcement-mode": "ENFORCING",
+      "claim-information-point": {
+        "claims": {
+          "http.uri": "{request.relativePath}",
+          "http.method": "{request.method}",
+          "http.fiware-service": "{request.header['fiware-service']}",
+          "http.fiware-servicepath": "{request.header['fiware-servicepath']}"
+        }
+      }
+    }
+  ]
+}
